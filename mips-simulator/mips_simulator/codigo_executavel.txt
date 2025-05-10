@@ -1,0 +1,4 @@
+config_CPU = [20GHZ, j=1, j=2, r=1]
+li $v0, 4
+li $v1, 10
+add $t2, $v1, $v0
