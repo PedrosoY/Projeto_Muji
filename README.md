@@ -16,7 +16,7 @@ Este é um simulador educacional de instruções MIPS, que lê um arquivo `.txt`
 ---
 
 ## 📁 Estrutura do Repositório
-
+```
 mips-simulator/
 ├── .github/
 │ └── workflows/
@@ -36,7 +36,7 @@ mips-simulator/
 ├── requirements.txt # Dependências do projeto
 ├── LICENSE
 └── README.md
-
+```
 
 ---
 
