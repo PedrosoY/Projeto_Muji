@@ -1,39 +1,80 @@
 Simulador MIPS em Python
 
-Este projeto implementa um simulador de instruções MIPS em Python, permitindo a leitura de um programa em um arquivo de texto e a execução passo a passo, mostrando informações de tempo de execução, contador de programa (PC), tipo de instrução e tabela de registradores.
+Simulador passo a passo de instruções MIPS com visualização de tempo de execução, PC, tipo de instrução e registradores.
 
-📂 Estrutura do Projeto
+📋 Sumário
+
+Visão Geral
+
+📁 Estrutura do Repositório
+
+🚀 Funcionalidades
+
+🔧 Instalação
+
+🏗️ Arquitetura e Classes
+
+📈 Fluxo de Execução
+
+📋 Exemplo de Uso
+
+🧪 Testes
+
+🤝 Contribuição
+
+⚖️ Licença
+
+📦 Visão Geral
+
+Este projeto implementa um simulador simples de CPU MIPS em Python. A cada instrução, exibe:
+
+Tempo acumulado (segundos)
+
+PC (Program Counter, em hexadecimal)
+
+Tipo (I, J ou R)
+
+Texto da instrução
+
+Tabela de Registradores (endereço, nome e valor)
+
+📁 Estrutura do Repositório
 
 mips-simulator/
-├── README.md               # Documentação do projeto
-├── requirements.txt        # Dependências do projeto
-├── config/                 # Arquivos de configuração
-│   └── cpu_config.txt      # Configuração ex: config_CPU = [Clock, TipoI, TipoJ, TipoR]
-├── src/                    # Código-fonte principal
-│   ├── __init__.py
-│   ├── parser.py           # Parser de instruções e arquivo de entrada
-│   ├── config.py           # Leitura e interpretação de config_CPU
-│   ├── cpu.py              # Classe CPU e lógica de execução de instruções
-│   ├── pc.py               # Classe ProgramCounter (PC)
-│   ├── registers.py        # Classe RegisterFile (tabela de registradores)
-│   ├── memory.py           # (Opcional) Classe Memory para operações de load/store
-│   └── simulator.py        # Classe Simulator: coordena leitura, execução e exibição
-└── examples/               # Exemplos de uso
-    └── programa.txt        # Exemplo de programa MIPS
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # GitHub Actions para CI
+├── examples/
+│   └── programa.txt         # Programa MIPS de exemplo
+├── src/
+│   ├── config.py            # Lê config_CPU
+│   ├── parser.py            # Parser de instruções
+│   ├── cpu.py               # Lógica de execução
+│   ├── pc.py                # Contador de programa
+│   ├── registers.py         # Manipulação de registradores
+│   ├── memory.py            # (Opcional) Memória load/store
+│   └── simulator.py         # Ponto de entrada
+├── tests/
+│   └── test_simulator.py    # Testes unitários
+├── requirements.txt         # Dependências
+├── LICENSE
+└── README.md
 
-🚀 Funcionalidades Principais
+🚀 Funcionalidades
 
-Leitura de arquivo: Carrega programa MIPS e configuração da CPU (clock, ciclos por tipo).
+Leitura de config_CPU = [clock, ciclos_I, ciclos_J, ciclos_R]
 
-Cálculo de tempo: Converte ciclos em segundos usando T = 1 / Clock.
+Parser de arquivo .txt com instruções MIPS
 
-PC (Program Counter): Incremento automático de 4 em 4 bytes, com suporte a loops.
+Cálculo de tempo por instrução: T = 1/clock × ciclos
 
-Execução passo a passo: Em cada instrução, exibe tempo acumulado, valor do PC, tipo e texto da instrução.
+Incremento de PC em 4 bytes e suporte a loops/jumps
 
-Tabela de registradores: Mostra endereços, nome e valor atualizado a cada instrução.
+Exibição detalhada a cada passo
 
-Modularidade: Organização em classes para fácil manutenção e extensão.
+Tabela de registradores atualizável
+
+Modularidade em classes para fácil extensão
 
 🔧 Instalação
 
@@ -42,89 +83,77 @@ Clone o repositório:
 git clone https://github.com/SEU_USUARIO/mips-simulator.git
 cd mips-simulator
 
-Crie e ative um ambiente virtual:
+Crie e ative um venv:
 
 python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
+source venv/bin/activate  # macOS/Linux
 venv\\Scripts\\activate # Windows
 
 Instale dependências:
 
 pip install -r requirements.txt
 
-🏗️ Organização das Classes
+🏗️ Arquitetura e Classes
 
 Classe
 
-Responsabilidade
+Descrição
 
 Config
 
-Carrega config_CPU do arquivo e expõe clock e ciclos por tipo.
+Carrega config_CPU e expõe clock e ciclos.
 
 InstructionParser
 
-Lê o .txt, interpreta cada linha e retorna objetos MIPSInstruction.
+Interpreta arquivo .txt e gera instruções.
 
 MIPSInstruction
 
-Representa instrução MIPS (tipo, opcode, operandos, texto bruto).
+Representa instrução (tipo, opcode, operandos).
 
 ProgramCounter
 
-Gerencia o valor PC, incrementa em 4 e faz jumps/loops.
+Gerencia PC, incrementa e faz saltos.
 
 RegisterFile
 
-Mantém tabela de registradores: nome, endereço (opcional) e valor.
+Mantém tabela de registradores (nome, endereço, valor).
 
 Memory
 
-(Opcional) Simula memória para instruções load/store.
+Simula memória load/store (opcional).
 
 CPU
 
-Executa instruções: recebe MIPSInstruction, atualiza registradores e memória.
+Executa instruções e atualiza registradores/memória.
 
 Simulator
 
-Controla fluxo: inicializa componentes, executa em loop e exibe saída.
+Orquestra leitura, execução e exibição.
 
 📈 Fluxo de Execução
 
-Inicialização:
+Inicialização
 
-Config lê config_CPU = [clock, ciclos_I, ciclos_J, ciclos_R].
+Config lê parâmetros de clock e ciclos.
 
-InstructionParser carrega lista de instruções.
+InstructionParser carrega instruções.
 
-ProgramCounter, RegisterFile e CPU são instanciados.
+Instancia ProgramCounter, RegisterFile, CPU.
 
-Loop de Execução:
+Execução (loop)
 
-Enquanto houver instruções:
+Busca instrução via PC.
 
-Buscar instrução pela posição de PC.
+Calcula tempo = ciclos_tipo * (1/clock).
 
-Calcular tempo da instrução: tempo = ciclos_tipo * (1/clock).
+Acumula em tempo_total.
 
-Acumular tempo_total.
+CPU.execute(instruction) atualiza estado.
 
-CPU.execute(instruction) atualiza registradores/memória.
+ProgramCounter.advance() (ou jump).
 
-ProgramCounter.advance() ou jump/loop.
-
-Exibir:
-
-Tempo acumulado
-
-Valor do PC (hex)
-
-Tipo de instrução (I, J, R)
-
-Instrução textual
-
-Estado atual da tabela de registradores
+Exibe estado: tempo, PC, tipo, instrução e registradores.
 
 📋 Exemplo de Uso
 
@@ -135,35 +164,35 @@ li $t0, 5
 li $t1, 10
 add $t2, $t0, $t1
 
-Executando:
+Execute:
 
 python -m src.simulator examples/programa.txt
 
-Saída esperada:
+Saída:
 
 Tempo: 4.0e-09 s | PC: 0x00 | Tipo: I | Inst: li $t0, 5
 Registers:
 | Endereço Mem. | Registrador | Valor |
 | ------------: |:-----------:|------:|
 |       0x153A47|    $t0      |     5 |
+...
 
-Tempo: 1.6e-08 s | PC: 0x04 | Tipo: I | Inst: li $t1, 10
-Registers:
-| Endereço Mem. | Registrador | Valor |
-|       0x1576BB|    $t1      |    10 |
+🧪 Testes
 
-... (demais instruções)
+Os testes estão em tests/.
+
+Execute com pytest:
+
+pytest --cov=src
 
 🤝 Contribuição
 
-Fork este repositório.
+Fork e branch (feature/x)
 
-Crie uma branch feature (git checkout -b feature/nova-funcionalidade).
+Commit atômico e doc clara
 
-Faça commits claros e pontuais.
+PR com descrição das mudanças
 
-Envie um Pull Request descrevendo as mudanças.
+⚖️ Licença
 
-📝 Licença
-
-Este projeto tem licença livre.
+Este projeto está sob a licença livre.
