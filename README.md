@@ -44,30 +44,35 @@ mips-simulator/
 
 Arquivo `programa.txt`:
 
+```
 config_CPU = [2.5e9, 4, 3, 1]
 li $t0, 5
 li $t1, 10
 add $t2, $t0, $t1
-
+```
 
 Execução:
 
 ```bash
 python src/simulator.py examples/programa.txt
-
+```
 Saída esperada:
 
+```
 ⏱ Tempo: 0.4 ns | 📄 PC: 0x00 | 🆔 Tipo: I | ⚙️ li $t0, 5
 ⏱ Tempo: 0.8 ns | 📄 PC: 0x04 | 🆔 Tipo: I | ⚙️ li $t1, 10
 ⏱ Tempo: 1.2 ns | 📄 PC: 0x08 | 🆔 Tipo: R | ⚙️ add $t2, $t0, $t1
+```
 
 🧾 Tabela de Registradores
+```
 Endereço Mem.	Registrador	Valor
 0x153A47	$t0	5
 0x1576BB	$t1	10
 0x15AB90	$t2	15
-
+```
 ✅ Testes
 Para rodar os testes:
+```
 pytest tests/
 ```
