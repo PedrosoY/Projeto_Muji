@@ -1,198 +1,73 @@
-Simulador MIPS em Python
+# 🧠 Simulador de MIPS – Python
 
-Simulador passo a passo de instruções MIPS com visualização de tempo de execução, PC, tipo de instrução e registradores.
+Este é um simulador educacional de instruções MIPS, que lê um arquivo `.txt` com a configuração da CPU e as instruções, executa linha por linha, calcula o tempo de execução com base nos ciclos e atualiza os registradores.
 
-📋 Sumário
+---
 
-Visão Geral
+## 🚀 Como funciona?
 
-📁 Estrutura do Repositório
+1. Lê a configuração da CPU (`config_CPU`) da primeira linha.
+2. Interpreta cada instrução MIPS (tipos R, I, J).
+3. Calcula o tempo com base nos ciclos por tipo de instrução.
+4. Atualiza o PC (contador de programa) de 4 em 4 bytes.
+5. Atualiza a tabela de registradores com valores.
+6. Exibe passo a passo: tempo acumulado, PC, tipo, instrução.
 
-🚀 Funcionalidades
+---
 
-🔧 Instalação
-
-🏗️ Arquitetura e Classes
-
-📈 Fluxo de Execução
-
-📋 Exemplo de Uso
-
-🧪 Testes
-
-🤝 Contribuição
-
-⚖️ Licença
-
-📦 Visão Geral
-
-Este projeto implementa um simulador simples de CPU MIPS em Python. A cada instrução, exibe:
-
-Tempo acumulado (segundos)
-
-PC (Program Counter, em hexadecimal)
-
-Tipo (I, J ou R)
-
-Texto da instrução
-
-Tabela de Registradores (endereço, nome e valor)
-
-📁 Estrutura do Repositório
+## 📁 Estrutura do Repositório
 
 mips-simulator/
 ├── .github/
-│   └── workflows/
-│       └── ci.yml           # GitHub Actions para CI
+│ └── workflows/
+│ └── ci.yml # GitHub Actions para testes
 ├── examples/
-│   └── programa.txt         # Programa MIPS de exemplo
+│ └── programa.txt # Exemplo de programa MIPS
 ├── src/
-│   ├── config.py            # Lê config_CPU
-│   ├── parser.py            # Parser de instruções
-│   ├── cpu.py               # Lógica de execução
-│   ├── pc.py                # Contador de programa
-│   ├── registers.py         # Manipulação de registradores
-│   ├── memory.py            # (Opcional) Memória load/store
-│   └── simulator.py         # Ponto de entrada
+│ ├── config.py # Leitura e validação da config_CPU
+│ ├── parser.py # Análise sintática das instruções
+│ ├── cpu.py # Lógica principal de execução
+│ ├── pc.py # Contador de Programa
+│ ├── registers.py # Manipulação dos registradores
+│ ├── memory.py # (Opcional) memória simulada
+│ └── simulator.py # Ponto de entrada do simulador
 ├── tests/
-│   └── test_simulator.py    # Testes unitários
-├── requirements.txt         # Dependências
+│ └── test_simulator.py # Testes unitários
+├── requirements.txt # Dependências do projeto
 ├── LICENSE
 └── README.md
 
-🚀 Funcionalidades
 
-Leitura de config_CPU = [clock, ciclos_I, ciclos_J, ciclos_R]
+---
 
-Parser de arquivo .txt com instruções MIPS
+## ⚙️ Exemplo de uso
 
-Cálculo de tempo por instrução: T = 1/clock × ciclos
-
-Incremento de PC em 4 bytes e suporte a loops/jumps
-
-Exibição detalhada a cada passo
-
-Tabela de registradores atualizável
-
-Modularidade em classes para fácil extensão
-
-🔧 Instalação
-
-Clone o repositório:
-
-git clone https://github.com/SEU_USUARIO/mips-simulator.git
-cd mips-simulator
-
-Crie e ative um venv:
-
-python3 -m venv venv
-source venv/bin/activate  # macOS/Linux
-venv\\Scripts\\activate # Windows
-
-Instale dependências:
-
-pip install -r requirements.txt
-
-🏗️ Arquitetura e Classes
-
-Classe
-
-Descrição
-
-Config
-
-Carrega config_CPU e expõe clock e ciclos.
-
-InstructionParser
-
-Interpreta arquivo .txt e gera instruções.
-
-MIPSInstruction
-
-Representa instrução (tipo, opcode, operandos).
-
-ProgramCounter
-
-Gerencia PC, incrementa e faz saltos.
-
-RegisterFile
-
-Mantém tabela de registradores (nome, endereço, valor).
-
-Memory
-
-Simula memória load/store (opcional).
-
-CPU
-
-Executa instruções e atualiza registradores/memória.
-
-Simulator
-
-Orquestra leitura, execução e exibição.
-
-📈 Fluxo de Execução
-
-Inicialização
-
-Config lê parâmetros de clock e ciclos.
-
-InstructionParser carrega instruções.
-
-Instancia ProgramCounter, RegisterFile, CPU.
-
-Execução (loop)
-
-Busca instrução via PC.
-
-Calcula tempo = ciclos_tipo * (1/clock).
-
-Acumula em tempo_total.
-
-CPU.execute(instruction) atualiza estado.
-
-ProgramCounter.advance() (ou jump).
-
-Exibe estado: tempo, PC, tipo, instrução e registradores.
-
-📋 Exemplo de Uso
-
-Arquivo examples/programa.txt:
+Arquivo `programa.txt`:
 
 config_CPU = [2.5e9, 4, 3, 1]
 li $t0, 5
 li $t1, 10
 add $t2, $t0, $t1
 
-Execute:
 
-python -m src.simulator examples/programa.txt
+Execução:
 
-Saída:
+```bash
+python src/simulator.py examples/programa.txt
 
-Tempo: 4.0e-09 s | PC: 0x00 | Tipo: I | Inst: li $t0, 5
-Registers:
-| Endereço Mem. | Registrador | Valor |
-| ------------: |:-----------:|------:|
-|       0x153A47|    $t0      |     5 |
-...
+Saída esperada:
 
-🧪 Testes
+⏱ Tempo: 0.4 ns | 📄 PC: 0x00 | 🆔 Tipo: I | ⚙️ li $t0, 5
+⏱ Tempo: 0.8 ns | 📄 PC: 0x04 | 🆔 Tipo: I | ⚙️ li $t1, 10
+⏱ Tempo: 1.2 ns | 📄 PC: 0x08 | 🆔 Tipo: R | ⚙️ add $t2, $t0, $t1
 
-Os testes estão em tests/.
+🧾 Tabela de Registradores
+Endereço Mem.	Registrador	Valor
+0x153A47	$t0	5
+0x1576BB	$t1	10
+0x15AB90	$t2	15
 
-Execute com pytest:
-
-pytest --cov=src
-
-🤝 Contribuição
-
-Fork e branch (feature/x)
-
-Commit atômico e doc clara
-
-PR com descrição das mudanças
-
-⚖️ Licença
-
-Este projeto está sob a licença livre.
+✅ Testes
+Para rodar os testes:
+pytest tests/
+```
