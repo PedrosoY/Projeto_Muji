@@ -1,32 +1,33 @@
+from pathlib import Path
+
 # Salvar registradores usados
 registradores = {}
 
+# Caminho absoluto para o arquivo na mesma pasta do script
+arquivo = Path(__file__).parent / "codigo_executavel.txt"
+
 # Função Li
 def salvarNaMemoria(registrador, valor):
-    # valor chega sem vírgulas
     valor_hex = hex(int(valor))
     registradores[registrador] = valor_hex
     print(f"Registrador {registrador} salvo com valor {valor_hex}")
 
-# Funcao ADD
+# Função ADD
 def somarDoisRegistradores(destino, r1, r2):
     v1 = int(registradores.get(r1, "0x0"), 16)
     v2 = int(registradores.get(r2, "0x0"), 16)
     soma = v1 + v2
-
     print(f"Somando registradores {r1} e {r2}: {hex(v1)} + {hex(v2)} = {hex(soma)}")
     print(f"Resultado armazenado no registrador {destino}: {hex(soma)}")
-
     salvarNaMemoria(destino, soma)
 
-# Ler Linha a Linha do Arquivo
-with open("codigo_executavel.txt") as f:
+# Ler linha a linha do arquivo
+with open(arquivo) as f:
     for linha in f:
         linha = linha.strip()
         if not linha or linha.startswith("#"):
             continue
 
-        # limpa todas as vírgulas antes de quebrar
         partes = linha.replace(",", "").split()
 
         if partes[0] == "li" and len(partes) == 3:
@@ -35,6 +36,7 @@ with open("codigo_executavel.txt") as f:
         elif partes[0] == "add" and len(partes) == 4:
             somarDoisRegistradores(partes[1], partes[2], partes[3])
 
+# Imprimir registradores finais
 print("\nRegistradores Finais:")
 for reg, val in registradores.items():
     print(f"{reg}: {int(val, 16)}")
