@@ -18,24 +18,33 @@ Este é um simulador educacional de instruções MIPS, que lê um arquivo `.txt`
 ## 📁 Estrutura do Repositório
 ```
 mips-simulator/
-├── .github/
-│ └── workflows/
-│ └── ci.yml # GitHub Actions para testes
-├── examples/
-│ └── programa.txt # Exemplo de programa MIPS
-├── src/
-│ ├── config.py # Leitura e validação da config_CPU
-│ ├── parser.py # Análise sintática das instruções
-│ ├── cpu.py # Lógica principal de execução
-│ ├── pc.py # Contador de Programa
-│ ├── registers.py # Manipulação dos registradores
-│ ├── memory.py # (Opcional) memória simulada
-│ └── simulator.py # Ponto de entrada do simulador
-├── tests/
-│ └── test_simulator.py # Testes unitários
-├── requirements.txt # Dependências do projeto
-├── LICENSE
-└── README.md
+├── .github/                      
+│   └── workflows/
+│       └── ci.yml                # CI (GitHub Actions)
+├── examples/                     
+│   └── programa.txt              # Exemplos de programas MIPS
+├── docs/                         
+│   └── (documentação, se for extenso)
+├── mips_simulator/               # Package principal
+│   ├── __init__.py
+│   ├── config.py                 # Configuração e validação de config_CPU
+│   ├── parser.py                 # Leitura e parsing de instruções
+│   ├── cpu.py                    # Lógica da CPU (executa instruções)
+│   ├── pc.py                     # Classe ProgramCounter
+│   ├── registers.py              # Classe RegisterFile
+│   ├── memory.py                 # (Opcional) Memória load/store
+│   └── simulator.py              # Classe Simulator + CLI/entry point
+├── tests/                        
+│   ├── __init__.py
+│   ├── test_config.py
+│   ├── test_parser.py
+│   ├── test_cpu.py
+│   └── test_simulator.py         # Testes unitários separados por módulo
+├── .gitignore
+├── pyproject.toml                # Metadados do projeto + build (PEP 518)
+├── setup.cfg                     # Configuração de packaging (opcional)
+├── requirements.txt              # Dependências diretas
+└── README.md                     # Documentação principal
 ```
 
 ---
