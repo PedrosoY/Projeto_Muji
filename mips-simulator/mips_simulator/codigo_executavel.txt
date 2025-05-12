@@ -1,5 +1,7 @@
 config_CPU = [20GHZ, i=100, j=100, r=100]
 li $v0, 50 
 li $v1, 10
+li $p1, 20
 add $t2, $v1, $v0
+sw $s1, 20($s2)
 li $t9, 10

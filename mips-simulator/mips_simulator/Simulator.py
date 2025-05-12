@@ -161,6 +161,92 @@ class Instrucao:
         self.codigo32 = hex(abs(hash(texto)) & 0xFFFFFFFF)
 
 # --------------------------------------------------------------------------------
+# Memoria do computador
+# --------------------------------------------------------------------------------
+
+# Adicionar o bloco de Memoria do computador, para exibir se foi salvo as informações
+    # Codigo da linha da memoria do Computador (como 0xasd50842)
+    # O Valor da memoria em Hexadecimal
+    # Valores armazenados nela em Decimal (pode ser palavras, numeros, etc)
+        # Byte = 8 bits
+        # Halfword = 2 bytes
+        # Word = 4 bytes
+        # Um caractere ocupa 1 byte na memória
+        # Um inteiro ocupa 1 word(4 bytes) na memória
+            # Formatações: Números são representados normalmente. Ex: 4
+            # Caracteres ficam entre aspas simples. Ex: a Strings ficam entre
+            # aspas duplas. Ex: palavra
+
+
+class MemoriaComputador:
+    """
+    Simula a memória de dados do computador:
+     - endereços de 0 a N bytes
+     - suporta operações de byte (1B), halfword (2B) e word (4B)
+     - armazena valores inteiros ou caracteres/string
+     - snapshot de conteúdo para exibição
+    """
+    def __init__(self, tamanho_bytes: int = 1024):
+        # inicializa memória com zeros
+        self.tamanho = tamanho_bytes
+        self.mem = bytearray(tamanho_bytes)
+        # mapa de endereços escritos: addr -> (size, tipo)
+        self._mapa = {}
+
+    def escrever(self, endereco: int, valor, size: int):
+        """
+        Escreve valor na memória:
+        - endereco: offset em bytes
+        - valor: int ou str (um caractere ou string)
+        - size: número de bytes: 1, 2 ou 4
+        """
+        if endereco < 0 or endereco + size > self.tamanho:
+            raise ValueError(f"Endereço {endereco} fora do intervalo de memória")
+        # converte valor para bytes little-endian
+        if isinstance(valor, str):
+            # string ou caractere
+            b = valor.encode('ascii')
+            if len(b) != size:
+                raise ValueError(f"Tamanho da string {len(b)} diferente de {size}")
+        else:
+            # inteiro
+            b = valor.to_bytes(size, byteorder='little', signed=True)
+        self.mem[endereco:endereco+size] = b
+        self._mapa[endereco] = (size, valor)
+
+    def ler(self, endereco: int, size: int):
+        """
+        Lê valor da memória:
+        - endereco: offset em bytes
+        - size: número de bytes a ler
+        Retorna int ou string (se foi escrito como caractere/string)
+        """
+        if endereco < 0 or endereco + size > self.tamanho:
+            raise ValueError(f"Endereço {endereco} fora do intervalo de memória")
+        b = self.mem[endereco:endereco+size]
+        # se endereço mapeado para string, retorna string
+        if endereco in self._mapa and isinstance(self._mapa[endereco][1], str):
+            return b.decode('ascii')
+        # senão retorna inteiro
+        return int.from_bytes(b, byteorder='little', signed=True)
+
+    def instantanea(self) -> list[tuple]:
+        """
+        Retorna lista de tuplas para exibição:
+        (EndereçoHex, Tipo, ValorHex, ValorDec)
+        """
+        rows = []
+        for addr in sorted(self._mapa):
+            size, valor_original = self._mapa[addr]
+            tipo = {1: 'Byte', 2: 'Halfword', 4: 'Word'}.get(size, f'{size}B')
+            # lê bytes atuais
+            b = self.mem[addr:addr+size]
+            val_int = int.from_bytes(b, byteorder='little', signed=True)
+            hex_repr = '"' + valor_original + '"' if isinstance(valor_original, str) else hex(val_int)
+            rows.append((f"0x{addr:08X}", tipo, hex_repr, val_int))
+        return rows
+
+# --------------------------------------------------------------------------------
 # Simulador MIPS completo
 # --------------------------------------------------------------------------------
 class SimuladorMIPS:
@@ -284,6 +370,12 @@ if __name__ == '__main__':
     finally:
         sim.exibir_estado_final()
 
+
+# Adicionar o bloco de Memoria do computador, para exibir se foi salvo as informações
+    # Codigo ADD li
+    # O Valor da memoria em Hexadecimal
+    # Linha do PC
+    # Valores armazenados nela
 
 # Exibir sempre uma tabela a cada linha dinamicamente com nome, numero, valor, registrador, memoria
 
