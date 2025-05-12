@@ -1,7 +1,30 @@
 config_CPU = [20GHZ, i=100, j=100, r=100]
-li $v0, 50 
+li $v0, 50
 li $v1, 10
 li $p1, 20
 add $t2, $v1, $v0
-sw $s1, 20($s2)
+sw $s1, 20($v0)
 li $t9, 10
+la $s0, 100
+li $t0, 'G'
+sb $t0, 0($s0)
+li $t0, 'a'
+sb $t0, 1($s0)
+li $t0, 'b'
+sb $t0, 2($s0)
+li $t0, 'r'
+sb $t0, 3($s0)
+li $t0, 'i'
+sb $t0, 4($s0)
+li $t0, 'e'
+sb $t0, 5($s0)
+li $t0, 'l'
+sb $t0, 6($s0)
+li $t0, 'G'
+sb $t0, 7($s0)
+li $t0, 'a'
+sb $t0, 8($s0)
+li $t0, 'y'
+sb $t0, 9($s0)
+li $t0, 0
+sb $t0, 10($s0)
