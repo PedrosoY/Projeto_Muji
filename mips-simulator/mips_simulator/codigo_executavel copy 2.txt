@@ -1,0 +1,80 @@
+config_CPU = [20GHZ, i=1, j=1, r=1]
+li   $v0,50
+li   $v1,10
+li   $s1,20
+li   $t8,0
+main:
+    la   $s0,100
+    sll  $t1,$t8,4
+    add  $s0,$s0,$t1
+    beq  $t8,0,W1
+    beq  $t8,1,W2
+    j    W3
+W1:
+    li   $t0,'G'
+    sb   $t0,0($s0)
+    li   $t0,'a'
+    sb   $t0,1($s0)
+    li   $t0,'b'
+    sb   $t0,2($s0)
+    li   $t0,'r'
+    sb   $t0,3($s0)
+    li   $t0,'i'
+    sb   $t0,4($s0)
+    li   $t0,'e'
+    sb   $t0,5($s0)
+    li   $t0,'l'
+    sb   $t0,6($s0)
+    li   $t0,'G'
+    sb   $t0,7($s0)
+    li   $t0,'a'
+    sb   $t0,8($s0)
+    li   $t0,'y'
+    sb   $t0,9($s0)
+    li   $t0,0
+    sb   $t0,10($s0)
+    j    C
+W2:
+    li   $t0,'X'
+    sb   $t0,0($s0)
+    li   $t0,'i'
+    sb   $t0,1($s0)
+    li   $t0,'a'
+    sb   $t0,2($s0)
+    li   $t0,'r'
+    sb   $t0,3($s0)
+    li   $t0,'i'
+    sb   $t0,4($s0)
+    li   $t0,'n'
+    sb   $t0,5($s0)
+    li   $t0,'o'
+    sb   $t0,6($s0)
+    li   $t0,'t'
+    sb   $t0,7($s0)
+    li   $t0,'i'
+    sb   $t0,8($s0)
+    li   $t0,0
+    sb   $t0,9($s0)
+    j    C
+W3:
+    li   $t0,'T'
+    sb   $t0,0($s0)
+    li   $t0,'e'
+    sb   $t0,1($s0)
+    li   $t0,'s'
+    sb   $t0,2($s0)
+    li   $t0,'c'
+    sb   $t0,3($s0)
+    li   $t0,'h'
+    sb   $t0,4($s0)
+    li   $t0,'e'
+    sb   $t0,5($s0)
+    li   $t0,0
+    sb   $t0,6($s0)
+C:
+    addi $t8,$t8,1
+    beq  $t8,3,exit
+    j    main
+exit:
+    li   $p99,100
+    li   $p92,100

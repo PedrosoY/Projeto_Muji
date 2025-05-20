@@ -54,27 +54,19 @@ class BancoDeRegistradores:
             't8','t9','k0','k1','gp','sp','fp','ra'
         ]
         self.regs = {f"${n}":0 for n in nomes}
-        self._historico_modificados: list[str] = []  # novo atributo
 
     def escrever(self, reg: str, val: int):
         if reg != '$zero':
             self.regs[reg] = val
-            if reg in self._historico_modificados:
-                self._historico_modificados.remove(reg)
-            self._historico_modificados.append(reg)
-            if len(self._historico_modificados) > 32:
-                self._historico_modificados.pop(0)
 
     def ler(self, reg: str) -> int:
         return self.regs.get(reg, 0)
 
-    def instantanea(self, max_linhas=5) -> list[tuple]:
+    def instantanea(self) -> list[tuple]:
         tabela = []
-        usados = self._historico_modificados[-max_linhas:]
-        for nome in reversed(usados):
-            val = self.regs[nome]
-            idx = list(self.regs.keys()).index(nome)
-            tabela.append((idx, nome, hex(val), val))
+        for idx, nome in enumerate(self.regs):
+            v = self.regs[nome]
+            tabela.append((idx, nome, hex(v), v))
         return tabela
 
 # --------------------------------------------------------------------------------
@@ -83,23 +75,16 @@ class BancoDeRegistradores:
 class MemoriaPrograma:
     def __init__(self):
         self.instrucoes: list[str] = []
-        self.labels: dict[str,int] = {}
 
     def carregar(self, caminho: Path, offset_linhas: int = 0):
         with open(caminho, 'r') as f:
-            idx = 0
-            for num, linha in enumerate(f):
-                if num < offset_linhas:
+            for idx, linha in enumerate(f):
+                if idx < offset_linhas:
                     continue
                 txt = linha.strip()
                 if not txt or txt.startswith('#'):
                     continue
-                if txt.endswith(':'):
-                    nome = txt[:-1]
-                    self.labels[nome] = idx
-                else:
-                    self.instrucoes.append(txt)
-                    idx += 1
+                self.instrucoes.append(txt)
 
     def instantanea(self) -> list[tuple]:
         tabela = []
@@ -170,9 +155,11 @@ class MemoriaComputador:
                 if len(seq) > 1:
                     txt = ''.join(seq)
                     rows.append((f"0x{addr:08X}", 'String', repr(txt), None))
+                    # pular endereços agrupados
                     while i < len(addrs) and addrs[i] < j:
                         i += 1
                     continue
+            # caso padrão
             b = self.mem[addr:addr+size]
             val_int = int.from_bytes(b, 'little', signed=True)
             hex_repr = f"\"{orig}\"" if isinstance(orig, str) else hex(val_int)
@@ -210,7 +197,7 @@ class Instrucao:
         self.codigo32 = hex(abs(hash(texto)) & 0xFFFFFFFF)
 
 # --------------------------------------------------------------------------------
-# Simulador MIPS completo com PC pré-incrementado
+# Simulador MIPS completo
 # --------------------------------------------------------------------------------
 class SimuladorMIPS:
     def __init__(self, caminho_arquivo: Path):
@@ -221,6 +208,7 @@ class SimuladorMIPS:
         self.config = ConfiguracaoCPU(itens)
 
         self.memoria = MemoriaPrograma()
+        # pula apenas a linha de config_cpu
         self.memoria.carregar(caminho_arquivo, offset_linhas=1)
 
         self.memoria_dados = MemoriaComputador(1024)
@@ -230,20 +218,16 @@ class SimuladorMIPS:
         self.tempo_acumulado = 0.0
 
     def executar_passo(self) -> bool:
-        old_pc = self.pc
-        idx = old_pc // 4
+        idx = self.pc // 4
         txt = self.memoria.ler_instrucao(idx)
         if txt is None:
             return False
         inst = Instrucao(txt)
-
-        # Incrementa PC antes da execução
-        self.pc += 4
-
         self.relogio.tick()
         peso = self.config.pesos.get(inst.tipo, 1)
         self.tempo_acumulado += peso * self.config.T
 
+        # --- instruções ---
         if inst.op == 'li':
             rd = inst.args[0]
             val = inst.args[1]
@@ -253,67 +237,42 @@ class SimuladorMIPS:
                 v = int(val, 0)
             self.registradores.escrever(rd, v)
 
-        elif inst.op == 'j':
-            label = inst.args[0]
-            if label not in self.memoria.labels:
-                raise ValueError(f"Label '{label}' não definido")
-            self.pc = self.memoria.labels[label] * 4
-            return True
-
         elif inst.op == 'la':
             rd = inst.args[0]
-            arg = inst.args[1]
-            # se for imediato numérico
-            if re.match(r'^(-?0x[0-9a-f]+|-?\d+)$', arg, re.IGNORECASE):
-                addr_val = int(arg, 0)
-                self.registradores.escrever(rd, addr_val)
-            else:
-                if arg not in self.memoria.labels:
-                    raise ValueError(f"Label '{arg}' não definido")
-                # multiplia índice por 4 para obter endereço em bytes
-                addr = self.memoria.labels[arg] * 4
-                self.registradores.escrever(rd, addr)
+            addr = int(inst.args[1], 0)
+            self.registradores.escrever(rd, addr)
 
         elif inst.op == 'add':
             rd, r1, r2 = inst.args
             soma = self.registradores.ler(r1) + self.registradores.ler(r2)
             self.registradores.escrever(rd, soma)
 
-        elif inst.op == 'addi':
-            rd, rs, imm = inst.args
-            val_rs = self.registradores.ler(rs)
-            val_imm = int(imm, 0)
-            self.registradores.escrever(rd, val_rs + val_imm)
-
-        elif inst.op == 'beq':
-            rs, rt, label = inst.args
-            val_rs = self.registradores.ler(rs)
-            val_rt = self.registradores.ler(rt)
-            if val_rs == val_rt:
-                if label not in self.memoria.labels:
-                    raise ValueError(f"Label '{label}' não definido")
-                self.pc = self.memoria.labels[label] * 4
-                return True
-
-        elif inst.op in ('sw', 'sb'):
+        elif inst.op == 'sw':
             rt, offb = inst.args
             m = re.match(r'(-?0x[0-9a-f]+|-?\d+)\((\$[a-z0-9]+)\)', offb, re.IGNORECASE)
             if not m:
-                raise ValueError(f"{inst.op} formato inválido: {offb}")
+                raise ValueError(f"sw formato inválido: {offb}")
             off, base = m.groups()
             end = self.registradores.ler(base) + int(off, 0)
             v = self.registradores.ler(rt)
-            size = 4 if inst.op == 'sw' else 1
-            if inst.op == 'sb':
-                v = v & 0xFF
-            self.memoria_dados.escrever(end, v, size)
+            self.memoria_dados.escrever(end, v, 4)
 
-        # Exibe estado com PC já apontando à próxima instrução
+        elif inst.op == 'sb':
+            rt, offb = inst.args
+            m = re.match(r'(-?0x[0-9a-f]+|-?\d+)\((\$[a-z0-9]+)\)', offb, re.IGNORECASE)
+            if not m:
+                raise ValueError(f"sb formato inválido: {offb}")
+            off, base = m.groups()
+            end = self.registradores.ler(base) + int(off, 0)
+            v = self.registradores.ler(rt) & 0xFF
+            self.memoria_dados.escrever(end, v, 1)
+
+        # exibe estado
         self.exibir_estado(inst)
+        self.pc += 4
         return True
 
     def exibir_estado(self, inst: Instrucao):
-        # Mostrar estado do ciclo, PC, instrução atual, e registradores
         header = [
             ['Tempo',   formatar_tempo(self.tempo_acumulado)],
             ['Ciclos',  self.relogio.ciclo],
@@ -331,26 +290,9 @@ class SimuladorMIPS:
 
         print('\nMemória de Programa (.text):')
         rows = []
-        exec_idx = (self.pc - 4) // 4  # índice da última instrução executada
-        total_instr = len(self.memoria.instrucoes)
-
-        # Mostra 5 linhas: 2 antes, atual, 2 depois
-        inicio = max(0, exec_idx - 2)
-        fim = min(total_instr, exec_idx + 3)
-
-        for idx in range(inicio, fim):
-            end = idx * 4
-            instr = self.memoria.instrucoes[idx]
-            c32 = hex(abs(hash(instr)) & 0xFFFFFFFF)
-            op = instr.split()[0]
-            if idx == exec_idx:
-                marc = '\033[91m→\033[0m'  # vermelho (executando)
-            elif idx == exec_idx + 1:
-                marc = '\033[94m⇒\033[0m'  # azul (PC apontando)
-            else:
-                marc = ' '
-            rows.append((marc, f"0x{end:08X}", c32, instr, op))
-
+        for end, c32, txt, opc in self.memoria.instantanea():
+            marc = '>>' if end == self.pc else '  '
+            rows.append((marc, f"0x{end:08X}", c32, txt, opc))
         print(tabulate(rows, headers=['','Endereço','Cod32','Instr','Op']))
 
         print('\nMemória de Dados (.data):')
@@ -360,14 +302,10 @@ class SimuladorMIPS:
         ))
         print('\n' + '='*60 + '\n')
 
-
     def exibir_estado_final(self):
-        print('\nRegistradores (últimos modificados):')
-        print(tabulate(
-            self.registradores.instantanea(max_linhas=5),
-            headers=['Num','Nome','Hex','Dec']
-        ))
-
+        print('=== Estado Final dos Registradores ===')
+        print(tabulate(self.registradores.instantanea(),
+                       headers=['Num','Nome','Hex','Dec']))
         print('\n=== Estado Final da Memória (.text) ===')
         print(tabulate([(f"0x{e:08X}", c32, t, o)
                          for e,c32,t,o in self.memoria.instantanea()],
@@ -391,3 +329,7 @@ if __name__ == '__main__':
         print('\nSimulação interrompida.\n')
     finally:
         sim.exibir_estado_final()
+
+
+# o PC tem que apontar para a proxima linha enquanto ele nao executar 
+# ou seja, se o PC deve apontar para a proxima linha, ele começa na linha 1 e so vai para a segunda linha quando ele executar a primeira
